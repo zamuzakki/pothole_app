@@ -1,10 +1,176 @@
 {% extends '_base.html' %}
 {% load static %}
+{% load leaflet_tags %}
+{% load static crispy_forms_tags %}
 
-{% block title %}Home page{% endblock title %}
+{% block title %}Pothole Monitor{% endblock title %}
 
 {% block content %}
-<h1>Home page</h1>
-<img src="{% static 'images/falconx.png' %}" class="img-fluid" alt="FalconX launch"/>
+    <h1>Potholes in Purworejo</h1>
+
+    {% leaflet_map "main" callback="main_map_init" %}
+
+    <!-- Modal -->
+    <div class="modal fade bd-example-modal-lg" id="pothole-modal" role="dialog" aria-labelledby="pothole-modal-Label" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+              <div class="card">
+                <div class="card-body">
+                    {% if messages|length > 0 %}
+                        <div class="alert alert-success" role="alert">
+                            {% for message in messages %}
+                                {% if 'safe' in message.tags %}
+                                    {{ message|safe }}
+                                {% else %}
+                                    {{ message }}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <form action="{{ action }}" id='pothole-form' method="post" enctype="multipart/form-data">
+                        {% if form.non_field_errors %}
+                            <ul>
+                              {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                              {% endfor %}
+                            </ul>
+                        {% endif %}
+                        {{ form.media }}
+                        {% crispy form %}
+                    </form>
+                </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
 {% endblock content %}
 
+
+{% block css %}
+    {% leaflet_css %}
+    <style>
+
+        .leaflet-container {  /* all maps */
+            width:  50vw;
+            height: 80vh;
+        }
+
+        #specialbigmap {
+            height: 800px;
+        }
+
+    </style>
+{% endblock css %}
+
+{% block javascript %}
+    {% leaflet_js %}
+    <script type="text/javascript">
+        let POTHOLEPROP = {};
+
+        let rad;
+        let opacity;
+        let color;
+        {% for WIDTH in POTHOLE_WIDTH %}
+            switch ('{{ WIDTH.0 }}') {
+                case '1':
+                    rad = 3;
+                    break;
+                case '2':
+                    rad = 6;
+                    break;
+                case '3':
+                    rad = 9;
+                    break;
+            }
+
+            POTHOLEPROP['{{ WIDTH.0 }}'] = {'value':rad};
+
+            {% for DEPTH in POTHOLE_DEPTH %}
+                switch ('{{ DEPTH.0 }}') {
+                    case '1':
+                        opacity = 0.3;
+                        break;
+                    case '2':
+                        opacity = 0.6;
+                        break;
+                    case '3':
+                        opacity = 1;
+                        break;
+                }
+
+                POTHOLEPROP['{{ WIDTH.0 }}']['{{ DEPTH.0 }}'] = {'value':opacity};
+
+                {% for RESPONSE in POTHOLE_RESPONSE %}
+                    switch ('{{ RESPONSE.0 }}') {
+                        case '1':
+                            color = 'black';
+                            break;
+                        case '2':
+                            color = 'red';
+                            break;
+                        case '3':
+                            color = 'blue';
+                            break;
+                        case '4':
+                            color = 'purple';
+                            break
+                    }
+
+                    POTHOLEPROP['{{ WIDTH.0 }}']['{{ DEPTH.0 }}']['{{ RESPONSE.0 }}'] = {'value':color};
+                {% endfor %}
+            {% endfor %}
+        {% endfor %}
+        console.log(POTHOLEPROP);
+
+        let holes = [];
+        var cities = L.layerGroup();
+        function main_map_init (map, options) {
+            let geom = [0,0];
+            let circle;
+            {% for pothole in pothole_list %}
+
+                geom[0] = {{ pothole.geometry.1 }};
+                geom[1] = {{ pothole.geometry.0 }};
+                console.log(geom);
+
+                circle = {
+                    radius:POTHOLEPROP['{{ pothole.width }}']['value'],
+                    fillOpacity:POTHOLEPROP['{{ pothole.width }}']['{{ pothole.depth }}']['value'],
+                    opacity:POTHOLEPROP['{{ pothole.width }}']['{{ pothole.depth }}']['value'],
+                    color:POTHOLEPROP['{{ pothole.width }}']['{{ pothole.depth }}']['{{ pothole.response_time_needed }}']['value'],
+                    weight:0
+                };
+
+                console.log('{{ pothole.id }}',circle);
+
+                {#holes.push(L.circleMarker(geom, circle));#}
+                L.circleMarker(geom, circle).addTo(map);
+            {% endfor %}
+
+            {% if request.user.is_authenticated %}
+                map.on('click',function addMarker(e){
+                    // Add marker to map at click location; add popup window
+                    console.log(e);
+                    $('#pothole-modal').modal('show');
+
+                    $('#pothole-modal').on('show.bs.modal', function(){
+                      setTimeout(function() {
+                        map.invalidateSize();
+                      }, 10);
+                     });
+                                    {#var newMarker = new L.marker(e.latlng).addTo(map);#}
+                });
+            {% endif %}
+        }
+
+    </script>
+{% endblock javascript %}

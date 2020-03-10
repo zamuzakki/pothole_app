@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
+    'django.contrib.gis',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
@@ -44,10 +45,12 @@ INSTALLED_APPS = [
     'allauth.account',
     'crispy_forms',
     'debug_toolbar',
+    'leaflet',
 
     # Local
     'users',
     'pages',
+    'pothole'
 ]
 
 MIDDLEWARE = [
@@ -87,7 +90,7 @@ WSGI_APPLICATION = 'djangox_project.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
+        'ENGINE': 'django.contrib.gis.db.backends.spatialite',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
@@ -134,6 +137,9 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static")
 ]
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 # Enabled for django-debug-toolbar to work
@@ -162,3 +168,11 @@ ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_UNIQUE_EMAIL = True
+
+LEAFLET_CONFIG = {
+    # 'SPATIAL_EXTENT': (-7.7129, 110.0093, -7.7129, 110.0093),
+    'DEFAULT_CENTER': (-7.7129, 110.0093),
+    'DEFAULT_ZOOM': 12,
+    # 'MIN_ZOOM': 3,
+    'MAX_ZOOM': 18,
+}
