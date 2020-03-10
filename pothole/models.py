@@ -80,7 +80,7 @@ class PotholeRepair(BaseModel):
     )
 
     pothole = models.ForeignKey(Pothole, on_delete=models.CASCADE, null=True, blank=False)
-    date = models.DateField(null=True, blank=False)
+    # date = models.DateField(null=True, blank=False)
     type = models.CharField(choices=TYPE, null=True, blank=False, max_length=1)
     result = models.CharField(choices=RESULT, null=True, blank=False, max_length=1)
     photo = models.ImageField(upload_to=pothole_photo_directory, null=False, blank=False)

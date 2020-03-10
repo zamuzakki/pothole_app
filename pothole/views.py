@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.views.generic import CreateView
+from django.views.generic import CreateView, DetailView
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.forms.models import model_to_dict
@@ -17,14 +17,18 @@ from django.core.serializers import serialize
 class PotholeCreateView(CreateView):
     form_class = PotholeForm
     model = Pothole
+    template_name = 'pothole/modal_form.html'
+    extra_context = {}
+
+    def get_context_data(self, *args, **kwargs):
+        self.extra_context['action'] = self.request.path
+
+        kwargs.update(self.extra_context)
+        return super().get_context_data(*args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         data = dict()
-
-
         form = self.form_class(request.POST, request.FILES)
-        print(request.POST)
-        print(request.FILES)
         if form.is_valid():
             geom = json.loads(request.POST['geometry'])
             geom = geom['coordinates']
@@ -32,7 +36,7 @@ class PotholeCreateView(CreateView):
             last_id = 0 if Pothole.objects.all().first() == None else Pothole.objects.all().first().id
 
             pothole = Pothole.objects.create(
-                id=last_id+1,
+                pk=last_id+1,
                 width=request.POST['width'],
                 depth=request.POST['depth'],
                 response_time_needed=request.POST['response_time_needed'],
@@ -48,11 +52,51 @@ class PotholeCreateView(CreateView):
             pothole.photo = filename
             pothole.save()
 
-            data['success'] = serialize('geojson', [pothole],
+            string_json = serialize('geojson', [pothole],
                       geometry_field='geometry',
-                      fields=('width','depth','response_time_needed','photo'))
+                      fields=('id','width','depth','response_time_needed','photo'))
+            geojson = json.loads(string_json)
+            geojson['features'][0]['properties']['id'] = str(pothole.id)
+            geojson['features'][0]['properties']['get_width_display'] = pothole.get_width_display()
+            geojson['features'][0]['properties']['get_depth_display'] = pothole.get_depth_display()
+            geojson['features'][0]['properties']['get_response_time_needed_display'] = pothole.get_response_time_needed_display()
+            geojson['features'][0]['properties']['photo'] = pothole.photo.url
+
+            data['success'] = geojson
+
+            print(data['success'])
 
             return JsonResponse(data)
         else:
             data['error'] = "form not valid!"
             return JsonResponse(data, status=500)
+
+    def get(self, request, *args, **kwargs):
+        self.object = None
+        return self.render_to_response(self.get_context_data(*args, **kwargs))
+
+class PotholeDetailView(DetailView):
+    model = Pothole
+    queryset = Pothole.objects.all()
+
+    def get_object(self, queryset=None):
+        id = int(self.request.GET.get('id',0))
+        print(id)
+        if not id == 0:
+            return self.queryset.get(id=id)
+
+    def render_to_response(self, context, **response_kwargs):
+        data = dict()
+        pothole = self.get_object()
+        string_json = serialize('geojson', [pothole],
+                                geometry_field='geometry',
+                                fields=('id', 'width', 'depth', 'response_time_needed', 'photo'))
+        geojson = json.loads(string_json)
+        geojson['features'][0]['properties']['id'] = str(pothole.id)
+        geojson['features'][0]['properties']['width'] = pothole.get_width_display()
+        geojson['features'][0]['properties']['depth'] = pothole.get_depth_display()
+        geojson['features'][0]['properties']['response_time_needed'] = pothole.get_response_time_needed_display()
+        geojson['features'][0]['properties']['photo'] = pothole.photo.url
+
+        data['success'] = geojson
+        return JsonResponse(data)

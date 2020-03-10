@@ -6,7 +6,7 @@
 {% block title %}Pothole Monitor{% endblock title %}
 
 {% block content %}
-    <h1>Potholes in Purworejo</h1>
+    <h1>Potholes in Purworejo, Central Java</h1>
 
     {% leaflet_map "main" callback="main_map_init" %}
 
@@ -22,19 +22,7 @@
           <div class="modal-body">
               <div class="card">
                 <div class="card-body">
-{#                    {% if messages|length > 0 %}#}
-{#                        <div class="alert alert-success" role="alert">#}
-{#                            {% for message in messages %}#}
-{#                                {% if 'safe' in message.tags %}#}
-{#                                    {{ message|safe }}#}
-{#                                {% else %}#}
-{#                                    {{ message }}#}
-{#                                {% endif %}#}
-{#                            {% endfor %}#}
-{#                        </div>#}
-{#                    {% endif %}#}
-
-                    <form action="{{ action }}" id='pothole-form' method="post" enctype="multipart/form-data">
+                    <form id='pothole-form' method="post" enctype="multipart/form-data">
                         {% if form.non_field_errors %}
                             <ul>
                               {% for error in form.non_field_errors %}
@@ -47,6 +35,45 @@
                     </form>
                 </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade bd-example-modal-lg" id="pothole-detail-modal" role="dialog" aria-labelledby="pothole-detail-modal-Label" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+              <table class="table table-striped table-sm">
+                    <tr>
+                        <th>Photo</th>
+                        <th style="width: 11vw">Width</th>
+                    </tr>
+                    <tr>
+                        <td rowspan="5" id="pothole-detail-photo" style="width: 40vw;"></td>
+                        <td id="pothole-detail-width"></td>
+                    </tr>
+                    <tr>
+                        <th style="width: 11vw">Depth</th>
+                    </tr>
+                    <tr>
+                        <td id="pothole-detail-depth"></td>
+                    </tr>
+                    <tr>
+                        <th style="width: 16vw">Response Time Needed</th>
+                    </tr>
+                    <tr>
+                        <td id="pothole-detail-response"></td>
+                    </tr>
+{#                    <tr>#}
+{#                        <td><button class="btn btn-primary">Add Repair Status</button></td>#}
+{#                    </tr>#}
+              </table>
           </div>
         </div>
       </div>
@@ -73,26 +100,27 @@
 
 {% block javascript %}
     {% leaflet_js %}
+    <script src="{% static 'js/Leaflet.SvgShapeMarkers-gh-pages/dist/leaflet-svg-shape-markers.js' %}"></script>
     <script type="text/javascript">
             let POTHOLEPROP = {};
 
-            let rad;
+            let shape;
             let opacity;
             let color;
             {% for WIDTH in POTHOLE_WIDTH %}
                 switch ('{{ WIDTH.0 }}') {
                     case '1':
-                        rad = 3;
+                        shape = 'square';
                         break;
                     case '2':
-                        rad = 6;
+                        shape = 'diamond';
                         break;
                     case '3':
-                        rad = 9;
+                        shape = 'circle';
                         break;
                 }
 
-                POTHOLEPROP['{{ WIDTH.0 }}'] = {'value': rad};
+                POTHOLEPROP['{{ WIDTH.0 }}'] = {'value': shape};
 
                 {% for DEPTH in POTHOLE_DEPTH %}
                     switch ('{{ DEPTH.0 }}') {
@@ -129,7 +157,6 @@
                     {% endfor %}
                 {% endfor %}
             {% endfor %}
-            console.log(POTHOLEPROP);
 
             let holes = [];
             var cities = L.layerGroup();
@@ -141,20 +168,31 @@
 
                     geom[0] = {{ pothole.geometry.1 }};
                     geom[1] = {{ pothole.geometry.0 }};
-                    console.log(geom);
 
                     circle = {
-                        radius: POTHOLEPROP['{{ pothole.width }}']['value'],
+                        radius: 9,
+                        shape: POTHOLEPROP['{{ pothole.width }}']['value'],
                         fillOpacity: POTHOLEPROP['{{ pothole.width }}']['{{ pothole.depth }}']['value'],
                         opacity: POTHOLEPROP['{{ pothole.width }}']['{{ pothole.depth }}']['value'],
                         color: POTHOLEPROP['{{ pothole.width }}']['{{ pothole.depth }}']['{{ pothole.response_time_needed }}']['value'],
-                        weight: 0
+                        weight: 0,
+                        potholeId: {{ pothole.id }},
+                        width: '{{ pothole.get_width_display }}',
+                        depth: '{{ pothole.get_depth_display }}',
+                        responseNeeded: '{{ pothole.get_response_time_needed_display }}',
+                        photo: '{{ pothole.photo.url }}',
+                        clickable: true,
                     };
 
-                    console.log('{{ pothole.id }}', circle);
+                    L.shapeMarker(geom, circle).addTo(map).on('click', function(e) {
+                        $('#pothole-detail-width').html(this.options.width);
+                        $('#pothole-detail-depth').html(this.options.depth);
+                        $('#pothole-detail-response').html(this.options.responseNeeded);
+                        $('#pothole-detail-photo').html('<img class="center" src="'+ this.options.photo +'" alt="pothole-image"></img>');
+                        $('#pothole-detail-modal').modal('show');
 
-                    {#holes.push(L.circleMarker(geom, circle));#}
-                    L.circleMarker(geom, circle).addTo(map);
+                        e.preventDefault();
+                    });
                 {% endfor %}
 
                 {% if request.user.is_authenticated %}
@@ -163,8 +201,8 @@
                         console.log(e.latlng.lat);
                         $('#pothole-modal').modal('show');
 
-                        $('#pothole-form').submit(function(event){
-                            event.preventDefault();
+                        $('#pothole-form').unbind('submit').bind('submit',function(eventSubmit) {
+                            eventSubmit.preventDefault();
 
                             var formData = new FormData(this);
                             formData.append("geometry",
@@ -178,10 +216,44 @@
                               processData: false,
                               contentType: false,
                               data: formData,
-                              success: function () {
-                                  L.marker(e.latlng).addTo(map);
+                              success: function (data) {
+                                  var mark = data.success;
+                                  console.log('success');
+                                  var width = mark.features[0].properties.width;
+                                  var depth = mark.features[0].properties.depth;
+                                  var responseTimeNeeded = mark.features[0].properties.response_time_needed;
+                                  var widthDisplay = mark.features[0].properties.get_width_display;
+                                  var depthDisplay = mark.features[0].properties.get_depth_display;
+                                  var responseTimeNeededDisplay = mark.features[0].properties.get_response_time_needed_display;
+                                  var potholeId = mark.features[0].properties.id;
+                                  var photo = mark.features[0].properties.photo;
+
+                                  circle = {
+                                        radius: 9,
+                                        fillOpacity: POTHOLEPROP[width][depth]['value'],
+                                        opacity: POTHOLEPROP[width][depth]['value'],
+                                        color: POTHOLEPROP[width][depth][responseTimeNeeded]['value'],
+                                        weight: 0,
+                                        potholeId: potholeId,
+                                        width: widthDisplay,
+                                        depth: depthDisplay,
+                                        responseNeeded: responseTimeNeededDisplay,
+                                        photo: photo,
+                                        clickable: true,
+                                    };
+
+                                  L.circleMarker(e.latlng, circle).addTo(map).on('click', function(eventClick) {
+                                        $('#pothole-detail-width').html(this.options.width);
+                                        $('#pothole-detail-depth').html(this.options.depth);
+                                        $('#pothole-detail-response').html(this.options.responseNeeded);
+                                        $('#pothole-detail-photo').html('<img class="center" src="'+ this.options.photo +'" alt="pothole-image" style="height:40vh;"></img>');
+                                        $('#pothole-detail-modal').modal('show');
+                                        eventClick.preventDefault();
+                                    });
+
+                                  $('#pothole-modal').modal('hide');
                               },
-                              error: function () {
+                              error: function (data) {
                                   alert('Failed saving Pothole!')
                               }
                             });

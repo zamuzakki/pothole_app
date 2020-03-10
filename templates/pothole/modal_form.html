@@ -1,0 +1,17 @@
+{% load static crispy_forms_tags %}
+
+ <div class="card">
+    <div class="card-body">
+        <form action="{{ action }}" id='pothole-form' method="post" enctype="multipart/form-data">
+            {% if form.non_field_errors %}
+                <ul>
+                  {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                  {% endfor %}
+                </ul>
+            {% endif %}
+            {{ form.media }}
+            {% crispy form %}
+        </form>
+    </div>
+</div>
