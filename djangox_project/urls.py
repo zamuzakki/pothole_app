@@ -7,7 +7,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('users/', include('django.contrib.auth.urls')),
     path('accounts/', include('allauth.urls')),
-    # path('pothole/', include('pothole.urls', namespace='pothole')),
+    path('pothole/', include(('pothole.urls','pothole'), namespace='pothole')),
     path('', include('pages.urls')),
 ]
 

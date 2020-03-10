@@ -22,17 +22,17 @@
           <div class="modal-body">
               <div class="card">
                 <div class="card-body">
-                    {% if messages|length > 0 %}
-                        <div class="alert alert-success" role="alert">
-                            {% for message in messages %}
-                                {% if 'safe' in message.tags %}
-                                    {{ message|safe }}
-                                {% else %}
-                                    {{ message }}
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    {% endif %}
+{#                    {% if messages|length > 0 %}#}
+{#                        <div class="alert alert-success" role="alert">#}
+{#                            {% for message in messages %}#}
+{#                                {% if 'safe' in message.tags %}#}
+{#                                    {{ message|safe }}#}
+{#                                {% else %}#}
+{#                                    {{ message }}#}
+{#                                {% endif %}#}
+{#                            {% endfor %}#}
+{#                        </div>#}
+{#                    {% endif %}#}
 
                     <form action="{{ action }}" id='pothole-form' method="post" enctype="multipart/form-data">
                         {% if form.non_field_errors %}
@@ -74,103 +74,120 @@
 {% block javascript %}
     {% leaflet_js %}
     <script type="text/javascript">
-        let POTHOLEPROP = {};
+            let POTHOLEPROP = {};
 
-        let rad;
-        let opacity;
-        let color;
-        {% for WIDTH in POTHOLE_WIDTH %}
-            switch ('{{ WIDTH.0 }}') {
-                case '1':
-                    rad = 3;
-                    break;
-                case '2':
-                    rad = 6;
-                    break;
-                case '3':
-                    rad = 9;
-                    break;
-            }
-
-            POTHOLEPROP['{{ WIDTH.0 }}'] = {'value':rad};
-
-            {% for DEPTH in POTHOLE_DEPTH %}
-                switch ('{{ DEPTH.0 }}') {
+            let rad;
+            let opacity;
+            let color;
+            {% for WIDTH in POTHOLE_WIDTH %}
+                switch ('{{ WIDTH.0 }}') {
                     case '1':
-                        opacity = 0.3;
+                        rad = 3;
                         break;
                     case '2':
-                        opacity = 0.6;
+                        rad = 6;
                         break;
                     case '3':
-                        opacity = 1;
+                        rad = 9;
                         break;
                 }
 
-                POTHOLEPROP['{{ WIDTH.0 }}']['{{ DEPTH.0 }}'] = {'value':opacity};
+                POTHOLEPROP['{{ WIDTH.0 }}'] = {'value': rad};
 
-                {% for RESPONSE in POTHOLE_RESPONSE %}
-                    switch ('{{ RESPONSE.0 }}') {
+                {% for DEPTH in POTHOLE_DEPTH %}
+                    switch ('{{ DEPTH.0 }}') {
                         case '1':
-                            color = 'black';
+                            opacity = 0.3;
                             break;
                         case '2':
-                            color = 'red';
+                            opacity = 0.6;
                             break;
                         case '3':
-                            color = 'blue';
+                            opacity = 1;
                             break;
-                        case '4':
-                            color = 'purple';
-                            break
                     }
 
-                    POTHOLEPROP['{{ WIDTH.0 }}']['{{ DEPTH.0 }}']['{{ RESPONSE.0 }}'] = {'value':color};
+                    POTHOLEPROP['{{ WIDTH.0 }}']['{{ DEPTH.0 }}'] = {'value': opacity};
+
+                    {% for RESPONSE in POTHOLE_RESPONSE %}
+                        switch ('{{ RESPONSE.0 }}') {
+                            case '1':
+                                color = 'black';
+                                break;
+                            case '2':
+                                color = 'red';
+                                break;
+                            case '3':
+                                color = 'blue';
+                                break;
+                            case '4':
+                                color = 'purple';
+                                break
+                        }
+
+                        POTHOLEPROP['{{ WIDTH.0 }}']['{{ DEPTH.0 }}']['{{ RESPONSE.0 }}'] = {'value': color};
+                    {% endfor %}
                 {% endfor %}
             {% endfor %}
-        {% endfor %}
-        console.log(POTHOLEPROP);
+            console.log(POTHOLEPROP);
 
-        let holes = [];
-        var cities = L.layerGroup();
-        function main_map_init (map, options) {
-            let geom = [0,0];
-            let circle;
-            {% for pothole in pothole_list %}
+            let holes = [];
+            var cities = L.layerGroup();
 
-                geom[0] = {{ pothole.geometry.1 }};
-                geom[1] = {{ pothole.geometry.0 }};
-                console.log(geom);
+            function main_map_init(map, options) {
+                let geom = [0, 0];
+                let circle;
+                {% for pothole in pothole_list %}
 
-                circle = {
-                    radius:POTHOLEPROP['{{ pothole.width }}']['value'],
-                    fillOpacity:POTHOLEPROP['{{ pothole.width }}']['{{ pothole.depth }}']['value'],
-                    opacity:POTHOLEPROP['{{ pothole.width }}']['{{ pothole.depth }}']['value'],
-                    color:POTHOLEPROP['{{ pothole.width }}']['{{ pothole.depth }}']['{{ pothole.response_time_needed }}']['value'],
-                    weight:0
-                };
+                    geom[0] = {{ pothole.geometry.1 }};
+                    geom[1] = {{ pothole.geometry.0 }};
+                    console.log(geom);
 
-                console.log('{{ pothole.id }}',circle);
+                    circle = {
+                        radius: POTHOLEPROP['{{ pothole.width }}']['value'],
+                        fillOpacity: POTHOLEPROP['{{ pothole.width }}']['{{ pothole.depth }}']['value'],
+                        opacity: POTHOLEPROP['{{ pothole.width }}']['{{ pothole.depth }}']['value'],
+                        color: POTHOLEPROP['{{ pothole.width }}']['{{ pothole.depth }}']['{{ pothole.response_time_needed }}']['value'],
+                        weight: 0
+                    };
 
-                {#holes.push(L.circleMarker(geom, circle));#}
-                L.circleMarker(geom, circle).addTo(map);
-            {% endfor %}
+                    console.log('{{ pothole.id }}', circle);
 
-            {% if request.user.is_authenticated %}
-                map.on('click',function addMarker(e){
-                    // Add marker to map at click location; add popup window
-                    console.log(e);
-                    $('#pothole-modal').modal('show');
+                    {#holes.push(L.circleMarker(geom, circle));#}
+                    L.circleMarker(geom, circle).addTo(map);
+                {% endfor %}
 
-                    $('#pothole-modal').on('show.bs.modal', function(){
-                      setTimeout(function() {
-                        map.invalidateSize();
-                      }, 10);
-                     });
-                                    {#var newMarker = new L.marker(e.latlng).addTo(map);#}
-                });
-            {% endif %}
-        }
+                {% if request.user.is_authenticated %}
+                    map.on('click', function addMarker(e) {
+                        // Add marker to map at click location; add popup window
+                        console.log(e.latlng.lat);
+                        $('#pothole-modal').modal('show');
 
+                        $('#pothole-form').submit(function(event){
+                            event.preventDefault();
+
+                            var formData = new FormData(this);
+                            formData.append("geometry",
+                                "{\"type\":\"Point\",\"coordinates\":["+e.latlng.lat+","+e.latlng.lng+"]}"
+                            );
+
+                            console.log(formData);
+                            $.ajax({
+                              type: "POST",
+                              url: "{% url 'pothole:pothole_create' %}",
+                              processData: false,
+                              contentType: false,
+                              data: formData,
+                              success: function () {
+                                  L.marker(e.latlng).addTo(map);
+                              },
+                              error: function () {
+                                  alert('Failed saving Pothole!')
+                              }
+                            });
+                        });
+                    });
+                {% endif %}
+            }
     </script>
 {% endblock javascript %}

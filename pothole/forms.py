@@ -1,7 +1,7 @@
 from django import forms
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Field, Submit, Row, Column
-from .models import Pothole,PotholeRepair
+from crispy_forms.layout import Layout, Field, Submit, Row, Column, Button
+from .models import Pothole, PotholeRepair
 
 class PotholeForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -20,17 +20,13 @@ class PotholeForm(forms.ModelForm):
                 css_class='form-row'
             ),
             # 'geometry',
-            Submit('submit', 'Add Pothole')
+            # Button('submit', 'Add Pothole', css_class='btn btn-primary ajax_submit_pothole', )
+            Submit('submit', 'Save')
         )
 
     def save(self, *args, **kwargs):
-        if self.pk is None:
-            saved_photo = self.photo
-            self.photo = None
-            super(PotholeForm, self).save(*args, **kwargs)
-            self.photo = saved_photo
-
-        super(PotholeForm, self).save(*args, **kwargs)
+        print(self.fields['width'])
+        # super(PotholeForm, self).save(*args, **kwargs)
 
     class Meta:
         model = Pothole

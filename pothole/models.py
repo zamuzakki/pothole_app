@@ -20,7 +20,7 @@ class BaseModel(models.Model):
 
 def pothole_photo_directory(instance, filename):
     fn, ext = os.path.splitext(filename)
-    return 'pothole_{}/original_{}.{}'.format(instance.pk, instance.pk, ext)
+    return 'pothole_{}/original_{}{}'.format(instance.pk, instance.pk, ext)
 
 class Pothole(BaseModel):
     DEPTH = (
