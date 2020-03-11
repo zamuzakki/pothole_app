@@ -11,7 +11,6 @@ class HomePageView(ListView):
         'POTHOLE_DEPTH': Pothole.DEPTH,
         'POTHOLE_RESPONSE': Pothole.RESPONSE_TIME_NEEDED,
         'form': PotholeForm(),
-        'search_form': PotholeSearchForm(),
     }
 
 

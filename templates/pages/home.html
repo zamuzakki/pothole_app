@@ -9,10 +9,10 @@
     <h1>Potholes in Purworejo, Central Java</h1>
 
     <div class="row">
-        <div class="col-lg-9 col-md-9 col-xs-12">
+        <div class="col-lg-9 col-md-9 col-sm-12 col-xs-12">
             {% leaflet_map "main" callback="main_map_init" %}
         </div>
-        <div id="div-leaflet-control" class="col-lg-3 col-md-3 col-xs-12">
+        <div id="div-leaflet-control" class="col-lg-3 col-md-3  col-sm-12 col-xs-12">
             <form id='pothole-search-form' method="get">
                 <div id="div_id_lebar" class="form-group">
                     <label for="id_lebar" class=" requiredField">Width<span class="asteriskField">*</span> </label>
@@ -132,7 +132,6 @@
 
     {% leaflet_css %}
     <style>
-
         .leaflet-container {  /* all maps */
             width:  60vw;
             height: 75vh;
