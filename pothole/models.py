@@ -30,9 +30,9 @@ class Pothole(BaseModel):
     )
 
     WIDTH = (
-        ('1', '<50mm'),
-        ('2', '50mm-150mm'),
-        ('3', '>150mm')
+        ('1', '<50cm'),
+        ('2', '50cm-150cm'),
+        ('3', '>150cm')
     )
 
     RESPONSE_TIME_NEEDED = (

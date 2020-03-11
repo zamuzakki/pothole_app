@@ -19,9 +19,9 @@
                     <div class="">
                         <select name="width" class="select form-control" required="" id="id_lebar">
                             <option value="all" selected="">All</option>
-                            <option value="1">&lt;50mm</option>
-                            <option value="2">50mm-150mm</option>
-                            <option value="3">&gt;150mm</option>
+                            {% for WIDTH in POTHOLE_WIDTH %}
+                                <option value="{{ WIDTH.0 }}">{{ WIDTH.1 }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                 </div>
@@ -31,8 +31,9 @@
                     <div class="">
                         <select name="depth" class="select form-control" required="" id="id_kedalaman">
                             <option value="all" selected="">All</option>
-                            <option value="1">&lt;30mm</option>
-                            <option value="2">30mm-60mm</option> <option value="3">&gt;60mm</option>
+                            {% for DEPTH in POTHOLE_DEPTH %}
+                                <option value="{{ DEPTH.0 }}">{{ DEPTH.1 }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                 </div>
@@ -42,10 +43,9 @@
                     <div class="">
                         <select name="response_time_needed" class="select form-control" required="" id="id_response">
                             <option value="all" selected="">All</option>
-                            <option value="1">&lt; A day</option>
-                            <option value="2">1 day - 5 days</option>
-                            <option value="3">6 days - 6 months</option>
-                            <option value="4">&gt;6 months</option>
+                            {% for RESPONSE in POTHOLE_RESPONSE %}
+                                <option value="{{ RESPONSE.0 }}">{{ RESPONSE.1 }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                 </div>
@@ -129,7 +129,6 @@
 
 {% block css %}
     <style></style>
-    <link rel="stylesheet" href="{% static 'leaflet_awesome_marker/leaflet.awesome-markers.css' %}">
 
     {% leaflet_css %}
     <style>
@@ -149,7 +148,6 @@
 {% block javascript %}
     {% leaflet_js %}
     <script src="{% static 'js/Leaflet.SvgShapeMarkers-gh-pages/dist/leaflet-svg-shape-markers.js' %}"></script>
-    <script src="{% static 'leaflet_awesome_marker/leaflet.awesome-markers.min.js' %}"></script>
     <script type="text/javascript">
             let POTHOLEPROP = {};
 

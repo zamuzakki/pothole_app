@@ -3,5 +3,40 @@
 {% block title %}About page{% endblock %}
 
 {% block content %}
-<h1>About page</h1>
+<h1>About Pothole Monitor</h1>
+<div class="card">
+    <div class="card-body">
+        <p>Pothole Monitor is a website where you can report any pothole you find in Purworejo, Central Java.</p>
+
+        <div class="card">
+            <div class="card-header">FAQ</div>
+            <div class="card-body">
+                <ul class="list-group">
+                    <li class="list-group-item">
+                        <a data-toggle="collapse" href="#faq-1" role="button" aria-expanded="false" aria-controls="collapseExample">
+                            Do I need to signup?
+                        </a>
+                        <div class="collapse" id="faq-1">
+                            <div class="card card-body">
+                                You don't need to signup if you only want to view Pothole. However, if you want to report
+                                Potholes, then signingup is the only way to go.
+                            </div>
+                        </div>
+                    </li>
+                    <li class="list-group-item">
+                        <a data-toggle="collapse" href="#faq-2" role="button" aria-expanded="false" aria-controls="collapseExample">
+                            What is 'Response Time Needed'?
+                        </a>
+                        <div class="collapse" id="faq-2">
+                            <div class="card card-body">
+                                It indicates the emergency of the Pothole. For example, if it is huge that it's blocking
+                                the entire road, you should select '< A Day' in Response Time Needed.
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock content %}

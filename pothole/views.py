@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.views.generic import CreateView, DetailView, ListView
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.forms.models import model_to_dict
 from .forms import PotholeForm
@@ -13,7 +14,7 @@ from django.core.serializers import serialize
 
 
 # Create your views here.
-@method_decorator(csrf_exempt, name='dispatch')
+@method_decorator([csrf_exempt, login_required], name='dispatch')
 class PotholeCreateView(CreateView):
     form_class = PotholeForm
     model = Pothole
