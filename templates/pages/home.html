@@ -9,10 +9,10 @@
     <h1>Potholes in Purworejo, Central Java</h1>
 
     <div class="row">
-        <div class="col-lg-9 col-md-9 col-sm-12 col-xs-12">
+        <div class="col-lg-9 col-md-9 col-xs-12">
             {% leaflet_map "main" callback="main_map_init" %}
         </div>
-        <div id="div-leaflet-control" class="col-lg-3 col-md-3  col-sm-12 col-xs-12">
+        <div id="div-leaflet-control" class="col-lg-3 col-md-3 col-xs-12">
             <form id='pothole-search-form' method="get">
                 <div id="div_id_lebar" class="form-group">
                     <label for="id_lebar" class=" requiredField">Width<span class="asteriskField">*</span> </label>
@@ -115,9 +115,6 @@
                     <tr>
                         <td id="pothole-detail-response"></td>
                     </tr>
-{#                    <tr>#}
-{#                        <td><button class="btn btn-primary">Add Repair Status</button></td>#}
-{#                    </tr>#}
               </table>
           </div>
         </div>
@@ -132,6 +129,7 @@
 
     {% leaflet_css %}
     <style>
+
         .leaflet-container {  /* all maps */
             width:  60vw;
             height: 75vh;
@@ -246,7 +244,6 @@
                 {% if request.user.is_authenticated %}
                     map.on('click', function addMarker(e) {
                         // Add marker to map at click location; add popup window
-                        console.log(e.latlng.lat);
                         $('#pothole-modal').modal('show');
 
                         $('#pothole-form').unbind('submit').bind('submit',function(eventSubmit) {
@@ -257,7 +254,6 @@
                                 "{\"type\":\"Point\",\"coordinates\":["+e.latlng.lat+","+e.latlng.lng+"]}"
                             );
 
-                            console.log(formData);
                             $.ajax({
                               type: "POST",
                               url: "{% url 'pothole:pothole_create' %}",
@@ -266,7 +262,6 @@
                               data: formData,
                               success: function (data) {
                                   var mark = data.success;
-                                  console.log('success');
                                   var width = mark.features[0].properties.width;
                                   var depth = mark.features[0].properties.depth;
                                   var responseTimeNeeded = mark.features[0].properties.response_time_needed;
@@ -321,7 +316,6 @@
                         var shape = POTHOLEPROP['{{ WIDTH.0 }}']['value'];
                         var item = '';
                         if(shape==='triangle-down'){
-                            console.log('traingle-down');
                             item = '<i class="fa fa-caret-down fa-2x" style="color:' + shape + '"></i> ' + ('{{ WIDTH.1 }}');
                         }
                         else{
@@ -383,7 +377,6 @@
                               markers.clearLayers();
                               var mark = data.success;
                               $.each(mark.features, function (idx,val) {
-                                  console.log('success');
                                   var width = val.properties.width;
                                   var depth = val.properties.depth;
                                   var responseTimeNeeded = val.properties.response_time_needed;
@@ -423,7 +416,7 @@
 
                           },
                           error: function (data) {
-                              console.log('aaa');
+                              alert('Error loading Pothole!');
                           }
                         });
                 });
