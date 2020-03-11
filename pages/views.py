@@ -1,6 +1,6 @@
 from django.views.generic import TemplateView,ListView
 from pothole.models import Pothole, PotholeRepair
-from pothole.forms import PotholeForm
+from pothole.forms import PotholeForm, PotholeSearchForm
 
 class HomePageView(ListView):
     template_name = 'pages/home.html'
@@ -10,7 +10,8 @@ class HomePageView(ListView):
         'POTHOLE_WIDTH': Pothole.WIDTH,
         'POTHOLE_DEPTH': Pothole.DEPTH,
         'POTHOLE_RESPONSE': Pothole.RESPONSE_TIME_NEEDED,
-        'form': PotholeForm()
+        'form': PotholeForm(),
+        'search_form': PotholeSearchForm(),
     }
 
 

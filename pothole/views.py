@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.views.generic import CreateView, DetailView
+from django.views.generic import CreateView, DetailView, ListView
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.forms.models import model_to_dict
@@ -93,10 +93,51 @@ class PotholeDetailView(DetailView):
                                 fields=('id', 'width', 'depth', 'response_time_needed', 'photo'))
         geojson = json.loads(string_json)
         geojson['features'][0]['properties']['id'] = str(pothole.id)
-        geojson['features'][0]['properties']['width'] = pothole.get_width_display()
-        geojson['features'][0]['properties']['depth'] = pothole.get_depth_display()
-        geojson['features'][0]['properties']['response_time_needed'] = pothole.get_response_time_needed_display()
+        geojson['features'][0]['properties']['get_width_display'] = pothole.get_width_display()
+        geojson['features'][0]['properties']['get_depth_display'] = pothole.get_depth_display()
+        geojson['features'][0]['properties']['get_response_time_needed_display'] = pothole.get_response_time_needed_display()
         geojson['features'][0]['properties']['photo'] = pothole.photo.url
+
+        data['success'] = geojson
+        return JsonResponse(data)
+
+class PotholeListView(ListView):
+    model = Pothole
+    queryset = Pothole.objects.all()
+
+    def get_object(self, queryset=None):
+        width = self.request.GET.get('width', 'all')
+        depth = self.request.GET.get('depth', 'all')
+        response = self.request.GET.get('response', 'all')
+
+        print(width, depth, response)
+
+        criteria = dict()
+
+        if not width == 'all':
+            criteria['width'] = width
+        if not depth == 'all':
+            criteria['depth'] = depth
+        if not response == 'all':
+            criteria['response_time_needed'] = response
+        return self.queryset.filter(**criteria)
+
+    def render_to_response(self, context, **response_kwargs):
+        data = dict()
+        pothole = self.get_object()
+        pothole = list(pothole)
+        string_json = serialize('geojson', pothole,
+                                geometry_field='geometry',
+                                fields=('id', 'width', 'width_display', 'depth', 'response_time_needed', 'photo'))
+        geojson = json.loads(string_json)
+
+        for index,item in enumerate(geojson['features']):
+            # print(index,item)
+            item['properties']['id'] = str(pothole[index].id)
+            item['properties']['get_width_display'] = pothole[index].get_width_display()
+            item['properties']['get_depth_display'] = pothole[index].get_depth_display()
+            item['properties']['get_response_time_needed_display'] = pothole[index].get_response_time_needed_display()
+            item['properties']['photo'] = pothole[index].photo.url
 
         data['success'] = geojson
         return JsonResponse(data)

@@ -8,7 +8,52 @@
 {% block content %}
     <h1>Potholes in Purworejo, Central Java</h1>
 
-    {% leaflet_map "main" callback="main_map_init" %}
+    <div class="row">
+        <div class="col-lg-9 col-md-9 col-xs-12">
+            {% leaflet_map "main" callback="main_map_init" %}
+        </div>
+        <div id="div-leaflet-control" class="col-lg-3 col-md-3 col-xs-12">
+            <form id='pothole-search-form' method="get">
+                <div id="div_id_lebar" class="form-group">
+                    <label for="id_lebar" class=" requiredField">Width<span class="asteriskField">*</span> </label>
+                    <div class="">
+                        <select name="width" class="select form-control" required="" id="id_lebar">
+                            <option value="all" selected="">All</option>
+                            <option value="1">&lt;50mm</option>
+                            <option value="2">50mm-150mm</option>
+                            <option value="3">&gt;150mm</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="div_id_kedalaman" class="form-group">
+                    <label for="id_kedalaman" class=" requiredField">Depth<span class="asteriskField">*</span> </label>
+                    <div class="">
+                        <select name="depth" class="select form-control" required="" id="id_kedalaman">
+                            <option value="all" selected="">All</option>
+                            <option value="1">&lt;30mm</option>
+                            <option value="2">30mm-60mm</option> <option value="3">&gt;60mm</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="div_id_response" class="form-group">
+                    <label for="id_response" class=" requiredField">Response Time Needed<span class="asteriskField">*</span> </label>
+                    <div class="">
+                        <select name="response_time_needed" class="select form-control" required="" id="id_response">
+                            <option value="all" selected="">All</option>
+                            <option value="1">&lt; A day</option>
+                            <option value="2">1 day - 5 days</option>
+                            <option value="3">6 days - 6 months</option>
+                            <option value="4">&gt;6 months</option>
+                        </select>
+                    </div>
+                </div>
+                <input type="submit" name="submit" value="Show" class="btn btn-primary" id="submit-id-search">
+            </form>
+        </div>
+    </div>
+
 
     <!-- Modal -->
     <div class="modal fade bd-example-modal-lg" id="pothole-modal" role="dialog" aria-labelledby="pothole-modal-Label" aria-hidden="true">
@@ -83,12 +128,15 @@
 
 
 {% block css %}
+    <style></style>
+    <link rel="stylesheet" href="{% static 'leaflet_awesome_marker/leaflet.awesome-markers.css' %}">
+
     {% leaflet_css %}
     <style>
 
         .leaflet-container {  /* all maps */
-            width:  50vw;
-            height: 80vh;
+            width:  60vw;
+            height: 75vh;
         }
 
         #specialbigmap {
@@ -101,6 +149,7 @@
 {% block javascript %}
     {% leaflet_js %}
     <script src="{% static 'js/Leaflet.SvgShapeMarkers-gh-pages/dist/leaflet-svg-shape-markers.js' %}"></script>
+    <script src="{% static 'leaflet_awesome_marker/leaflet.awesome-markers.min.js' %}"></script>
     <script type="text/javascript">
             let POTHOLEPROP = {};
 
@@ -110,10 +159,10 @@
             {% for WIDTH in POTHOLE_WIDTH %}
                 switch ('{{ WIDTH.0 }}') {
                     case '1':
-                        shape = 'square';
+                        shape = 'triangle-down';
                         break;
                     case '2':
-                        shape = 'diamond';
+                        shape = 'square';
                         break;
                     case '3':
                         shape = 'circle';
@@ -125,10 +174,10 @@
                 {% for DEPTH in POTHOLE_DEPTH %}
                     switch ('{{ DEPTH.0 }}') {
                         case '1':
-                            opacity = 0.3;
+                            opacity = 0.4;
                             break;
                         case '2':
-                            opacity = 0.6;
+                            opacity = 0.7;
                             break;
                         case '3':
                             opacity = 1;
@@ -159,8 +208,6 @@
             {% endfor %}
 
             let holes = [];
-            var cities = L.layerGroup();
-
             function main_map_init(map, options) {
                 let geom = [0, 0];
                 let circle;
@@ -184,7 +231,7 @@
                         clickable: true,
                     };
 
-                    L.shapeMarker(geom, circle).addTo(map).on('click', function(e) {
+                    var marker = L.shapeMarker(geom, circle).on('click', function(e) {
                         $('#pothole-detail-width').html(this.options.width);
                         $('#pothole-detail-depth').html(this.options.depth);
                         $('#pothole-detail-response').html(this.options.responseNeeded);
@@ -193,7 +240,11 @@
 
                         e.preventDefault();
                     });
+                    holes.push(marker);
                 {% endfor %}
+
+                var markers = L.layerGroup(holes);
+                map.addLayer(markers);
 
                 {% if request.user.is_authenticated %}
                     map.on('click', function addMarker(e) {
@@ -230,6 +281,7 @@
 
                                   circle = {
                                         radius: 9,
+                                        shape: POTHOLEPROP[width]['value'],
                                         fillOpacity: POTHOLEPROP[width][depth]['value'],
                                         opacity: POTHOLEPROP[width][depth]['value'],
                                         color: POTHOLEPROP[width][depth][responseTimeNeeded]['value'],
@@ -242,7 +294,7 @@
                                         clickable: true,
                                     };
 
-                                  L.circleMarker(e.latlng, circle).addTo(map).on('click', function(eventClick) {
+                                  var marker = L.shapeMarker(e.latlng, circle).on('click', function(eventClick) {
                                         $('#pothole-detail-width').html(this.options.width);
                                         $('#pothole-detail-depth').html(this.options.depth);
                                         $('#pothole-detail-response').html(this.options.responseNeeded);
@@ -250,6 +302,8 @@
                                         $('#pothole-detail-modal').modal('show');
                                         eventClick.preventDefault();
                                     });
+
+                                  marker.addTo(markers);
 
                                   $('#pothole-modal').modal('hide');
                               },
@@ -260,6 +314,122 @@
                         });
                     });
                 {% endif %}
+
+                var legend = L.control({position: 'bottomleft'});
+                legend.onAdd = function (map) {
+                    var div = L.DomUtil.create('div', 'info-legend');
+                    var labels = ['<strong>Width (Shape)</strong>'];
+
+                    {% for WIDTH in POTHOLE_WIDTH %}
+                        var shape = POTHOLEPROP['{{ WIDTH.0 }}']['value'];
+                        var item = '';
+                        if(shape==='triangle-down'){
+                            console.log('traingle-down');
+                            item = '<i class="fa fa-caret-down fa-2x" style="color:' + shape + '"></i> ' + ('{{ WIDTH.1 }}');
+                        }
+                        else{
+                            item = '<i class="fa fa-'+ shape +'" style="color:' + shape + '"></i> ' + ('{{ WIDTH.1 }}');
+                        }
+                        div.innerHTML += labels.push(item);
+                    {% endfor %}
+
+                    div.innerHTML = labels.join('<br>');
+                    return div;
+                };
+                legend.addTo(map);
+
+                legend = L.control({position: 'bottomleft'});
+                legend.onAdd = function (map) {
+                    var div = L.DomUtil.create('div', 'info-legend');
+                    var labels = ['<strong>Depth (Opacity)</strong>'];
+
+                    {% for DEPTH in POTHOLE_DEPTH %}
+                        var opacity = POTHOLEPROP['1']['{{ DEPTH.0 }}']['value']*100;
+                        div.innerHTML +=
+                        labels.push('<i class="fa fa-circle" style="opacity:' + opacity + '%"></i> ' + ('{{ DEPTH.1 }}'));
+                    {% endfor %}
+
+                    div.innerHTML = labels.join('<br>');
+                    return div;
+                };
+                legend.addTo(map);
+
+                legend = L.control({position: 'bottomleft'});
+                legend.onAdd = function (map) {
+                    var div = L.DomUtil.create('div', 'info-legend');
+                    var labels = ['<strong>Response Time Needed (Color)</strong>'];
+
+                    {% for RESPONSE in POTHOLE_RESPONSE %}
+                        var color = POTHOLEPROP['1']['1']['{{ RESPONSE.0 }}']['value'];
+                        div.innerHTML +=
+                        labels.push('<i class="fa fa-circle" style="color:' + color + '"></i> ' + ('{{ RESPONSE.1 }}'));
+                    {% endfor %}
+
+                    div.innerHTML = labels.join('<br>');
+                    return div;
+                };
+                legend.addTo(map);
+
+                $('.info-legend').css( {'background':'white'});
+
+                $('#pothole-search-form').unbind('submit').bind('submit',function(eventSubmit) {
+                        eventSubmit.preventDefault();
+
+                        var width = $('#id_lebar').val();
+                        var depth = $('#id_kedalaman').val();
+                        var response = $('#id_response').val();
+
+                        $.ajax({
+                          type: "GET",
+                          url: "{% url 'pothole:pothole_list' %}?width="+width+'&depth='+depth+'&response='+response,
+                          success: function (data) {
+                              markers.clearLayers();
+                              var mark = data.success;
+                              $.each(mark.features, function (idx,val) {
+                                  console.log('success');
+                                  var width = val.properties.width;
+                                  var depth = val.properties.depth;
+                                  var responseTimeNeeded = val.properties.response_time_needed;
+                                  var widthDisplay = val.properties.get_width_display;
+                                  var depthDisplay = val.properties.get_depth_display;
+                                  var responseTimeNeededDisplay = val.properties.get_response_time_needed_display;
+                                  var potholeId = val.properties.id;
+                                  var photo = val.properties.photo;
+                                  var geometry = val.geometry.coordinates;
+
+                                  circle = {
+                                      radius: 9,
+                                      shape: POTHOLEPROP[width]['value'],
+                                      fillOpacity: POTHOLEPROP[width][depth]['value'],
+                                      opacity: POTHOLEPROP[width][depth]['value'],
+                                      color: POTHOLEPROP[width][depth][responseTimeNeeded]['value'],
+                                      weight: 0,
+                                      potholeId: potholeId,
+                                      width: widthDisplay,
+                                      depth: depthDisplay,
+                                      responseNeeded: responseTimeNeededDisplay,
+                                      photo: photo,
+                                      clickable: true,
+                                  };
+
+                                  var marker = L.shapeMarker([geometry[1], geometry[0]], circle).on('click', function (eventClick) {
+                                      $('#pothole-detail-width').html(this.options.width);
+                                      $('#pothole-detail-depth').html(this.options.depth);
+                                      $('#pothole-detail-response').html(this.options.responseNeeded);
+                                      $('#pothole-detail-photo').html('<img class="center" src="' + this.options.photo + '" alt="pothole-image" style="height:40vh;"></img>');
+                                      $('#pothole-detail-modal').modal('show');
+                                      eventClick.preventDefault();
+                                  });
+
+                                  marker.addTo(markers);
+                              });
+
+                          },
+                          error: function (data) {
+                              console.log('aaa');
+                          }
+                        });
+                });
             }
     </script>
 {% endblock javascript %}

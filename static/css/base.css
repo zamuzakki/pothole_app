@@ -8,3 +8,8 @@ a.navbar-link {
   margin-right: auto;
   width: 50%;
 }
+
+info-legend {
+    background:white;
+    opacity:80%;
+}
