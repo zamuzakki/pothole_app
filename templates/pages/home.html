@@ -256,6 +256,7 @@
 
                             $.ajax({
                               type: "POST",
+                              async: true,
                               url: "{% url 'pothole:pothole_create' %}",
                               processData: false,
                               contentType: false,
@@ -372,6 +373,7 @@
 
                         $.ajax({
                           type: "GET",
+                          async: true,
                           url: "{% url 'pothole:pothole_list' %}?width="+width+'&depth='+depth+'&response='+response,
                           success: function (data) {
                               markers.clearLayers();
