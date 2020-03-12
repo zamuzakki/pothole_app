@@ -9,7 +9,7 @@ a.navbar-link {
   width: 50%;
 }
 
-info-legend {
+.info-legend {
     background:white;
-    opacity:80%;
+    opacity:60%;
 }

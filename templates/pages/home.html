@@ -13,7 +13,12 @@
             {% leaflet_map "main" callback="main_map_init" %}
         </div>
         <div id="div-leaflet-control" class="col-lg-3 col-md-3 col-xs-12">
-            <form id='pothole-search-form' method="get">
+            <div class="card">
+                <div class="card-header bg-dark">
+                    <span class="text-light font-weight-bold">Filter Pothole</span>
+                </div>
+                <div class="card-body">
+                    <form id='pothole-search-form' method="get">
                 <div id="div_id_lebar" class="form-group">
                     <label for="id_lebar" class=" requiredField">Width<span class="asteriskField">*</span> </label>
                     <div class="">
@@ -50,6 +55,8 @@
                     </div>
                 </div>
             </form>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -259,12 +266,9 @@
                     {% for WIDTH in POTHOLE_WIDTH %}
                         var shape = POTHOLEPROP['{{ WIDTH.0 }}']['value'];
                         var item = '';
-                        if(shape==='triangle-down'){
-                            item = '<i class="fa fa-caret-down" style="color:' + shape + '"></i> ' + ('{{ WIDTH.1 }}');
-                        }
-                        else{
-                            item = '<i class="fa fa-'+ shape +'" style="color:' + shape + '"></i> ' + ('{{ WIDTH.1 }}');
-                        }
+
+                        item = '<img src="/static/images/legend/' + shape + '.png" width=12px></i> ' + ('{{ WIDTH.1 }}');
+
                         div.innerHTML += labels.push(item);
                     {% endfor %}
 
@@ -281,7 +285,7 @@
                     {% for DEPTH in POTHOLE_DEPTH %}
                         var opacity = POTHOLEPROP['1']['{{ DEPTH.0 }}']['value']*100;
                         div.innerHTML +=
-                        labels.push('<i class="fa fa-circle" style="opacity:' + opacity + '%"></i> ' + ('{{ DEPTH.1 }}'));
+                        labels.push('<img src="/static/images/legend/' + opacity + '.png" width=12px></i> ' + ('{{ DEPTH.1 }}'));
                     {% endfor %}
 
                     div.innerHTML = labels.join('<br>');
@@ -297,7 +301,7 @@
                     {% for RESPONSE in POTHOLE_RESPONSE %}
                         var color = POTHOLEPROP['1']['1']['{{ RESPONSE.0 }}']['value'];
                         div.innerHTML +=
-                        labels.push('<i class="fa fa-circle" style="color:' + color + '"></i> ' + ('{{ RESPONSE.1 }}'));
+                        labels.push('<img src="/static/images/legend/' + color + '.png" width=12px></i> ' + ('{{ RESPONSE.1 }}'));
                     {% endfor %}
 
                     div.innerHTML = labels.join('<br>');
