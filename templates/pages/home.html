@@ -49,7 +49,6 @@
                         </select>
                     </div>
                 </div>
-                <input type="submit" name="submit" value="Show" class="btn btn-primary" id="submit-id-search">
             </form>
         </div>
     </div>
@@ -129,9 +128,7 @@
 
     {% leaflet_css %}
     <style>
-
         .leaflet-container {  /* all maps */
-            width:  60vw;
             height: 75vh;
         }
 
@@ -317,7 +314,7 @@
                         var shape = POTHOLEPROP['{{ WIDTH.0 }}']['value'];
                         var item = '';
                         if(shape==='triangle-down'){
-                            item = '<i class="fa fa-caret-down fa-2x" style="color:' + shape + '"></i> ' + ('{{ WIDTH.1 }}');
+                            item = '<i class="fa fa-caret-down" style="color:' + shape + '"></i> ' + ('{{ WIDTH.1 }}');
                         }
                         else{
                             item = '<i class="fa fa-'+ shape +'" style="color:' + shape + '"></i> ' + ('{{ WIDTH.1 }}');
@@ -364,7 +361,7 @@
 
                 $('.info-legend').css( {'background':'white'});
 
-                $('#pothole-search-form').unbind('submit').bind('submit',function(eventSubmit) {
+                $('#id_lebar, #id_kedalaman, #id_response').on('change',function(eventSubmit) {
                         eventSubmit.preventDefault();
 
                         var width = $('#id_lebar').val();
