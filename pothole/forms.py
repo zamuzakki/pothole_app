@@ -8,30 +8,29 @@ class PotholeForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.layout = Layout(
-            # Row(
-            #     Column('photo', css_class='form-group col-lg-6 col-md-12 col-sm-12 col-xs-12'),
-            #     Column('response_time_needed', css_class='form-group col-lg-6 col-md-12 col-sm-12 col-xs-12'),
-            #     css_class='form-row'
-            # ),
             Row(
                 Column(
                     Row(
-                        Column('photo', css_class='col-md-6 col-sm'),
-                        Column('response_time_needed', css_class='col-md-6 col-sm-auto'),
+                        Column('photo', css_class='col-12 col-sm-6 input-sm'),
+                        Column('response_time_needed', css_class='col-12 col-sm-6 input-sm '),
                         css_class='row'
                     ),
                     css_class='col-md-12'
                 ),
-                css_class='row'
+                css_class='form-row row'
             ),
 
             Row(
-                Column('depth', css_class='form-group col-md-6 mb-0'),
-                Column('width', css_class='form-group col-md-6 mb-0'),
-                css_class='form-row'
+                Column(
+                    Row(
+                        Column('width', css_class='col-12 col-sm-6 input-sm'),
+                        Column('depth', css_class='col-12 col-sm-6 input-sm'),
+                        css_class='row'
+                    ),
+                    css_class='col-md-12'
+                ),
+                css_class='form-row row'
             ),
-            # 'geometry',
-            # Button('submit', 'Add Pothole', css_class='btn btn-primary ajax_submit_pothole', )
             Submit('submit', 'Save')
         )
 
