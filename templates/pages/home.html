@@ -102,6 +102,7 @@
     {% leaflet_js %}
     <script src="{% static 'js/Leaflet.SvgShapeMarkers-gh-pages/dist/leaflet-svg-shape-markers.js' %}"></script>
     <script src="{% static 'js/leaflet.markercluster.js' %}"></script>
+    <script src="{% static 'js/leaflet.ajax.min.js' %}"></script>
     <script type="text/javascript">
             let POTHOLEPROP = {};
 
@@ -198,6 +199,8 @@
 
             let holes = [];
             function main_map_init(map, options) {
+                const PURWOREJO = new L.GeoJSON.AJAX("{% static 'purworejo_geojson.json' %}",{fillOpacity:0.2});
+                PURWOREJO.addTo(map);
                 let geom = [0, 0];
                 let circle;
                 var markers = L.markerClusterGroup();
